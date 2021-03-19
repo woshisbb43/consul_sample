@@ -7,6 +7,11 @@ app = Flask(__name__)
 def foo_give_1():
     return str(get_1())
 
+@app.route('/health', methods=['GET'])
+def check_health():
+    return json.dumps({'success': True}), 200, \
+         {'ContentType': 'application/json'}
+
 @app.route('/service_register')
 def service_register():
     url = "http://127.0.0.1:8500/v1/agent/service/register?replace-existing-checks=true"
@@ -16,7 +21,13 @@ def service_register():
         "Name": "foo1",
         "Tags": ["v1"],
         "Address": "127.0.0.1",
-        "Port": 8081
+        "Check": {
+            "DeregisterCriticalServiceAfter": "90m",
+            "HTTP": "http://127.0.0.1:8071/health",
+            "Interval": "3s",
+            "Timeout": "5s"
+        },
+        "Port": 8071
     }
     headers = {
         'Content-Type': 'application/json'
@@ -31,4 +42,4 @@ def get_1():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8081, debug=True)
+    app.run(host='0.0.0.0', port=8071, debug=True)
